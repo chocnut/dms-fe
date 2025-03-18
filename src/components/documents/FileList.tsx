@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import styled from 'styled-components'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -9,6 +9,7 @@ import {
   faMagnifyingGlass,
 } from '@fortawesome/free-solid-svg-icons'
 import { useFiles, useCreateFolder } from '@/hooks/useFiles'
+import { useUploadDocument } from '@/hooks/useDocuments'
 import { Table } from '@/components/common/Table'
 import { Button } from '@/components/common/Button'
 import { Modal } from '@/components/common/Modal'
@@ -82,11 +83,43 @@ const Form = styled.form`
   gap: 16px;
 `
 
+const HiddenInput = styled.input`
+  display: none;
+`
+
 export const FileList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const { data: items = [], isLoading, error } = useFiles()
   const createFolder = useCreateFolder()
+  const uploadDocument = useUploadDocument()
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      await uploadDocument.mutateAsync({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        created_by: 'John Green',
+        folder_id: null,
+      })
+    } catch (error) {
+      console.error('Failed to upload file:', error)
+    }
+
+    // Reset the input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
 
   const columns = [
     {
@@ -177,14 +210,26 @@ export const FileList = () => {
       <Header>
         <Title>Documents</Title>
         <Actions>
-          <Button variant="outline" icon={<FontAwesomeIcon icon={faUpload} />}>
-            Upload files
+          <Button
+            variant="outline"
+            icon={<FontAwesomeIcon icon={faUpload} />}
+            onClick={handleUploadClick}
+            disabled={uploadDocument.isPending}
+          >
+            {uploadDocument.isPending ? 'Uploading...' : 'Upload files'}
           </Button>
           <Button icon={<FontAwesomeIcon icon={faPlus} />} onClick={() => setIsModalOpen(true)}>
             Add new folder
           </Button>
         </Actions>
       </Header>
+
+      <HiddenInput
+        ref={fileInputRef}
+        type="file"
+        onChange={handleFileChange}
+        accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+      />
 
       <SearchContainer>
         <SearchIcon>

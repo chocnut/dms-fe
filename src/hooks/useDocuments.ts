@@ -19,3 +19,16 @@ export const useCreateDocument = () => {
     },
   })
 }
+
+export const useUploadDocument = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: DocumentService.upload,
+    onSuccess: () => {
+      // Invalidate both documents and files queries
+      queryClient.invalidateQueries({ queryKey: ['documents'] })
+      queryClient.invalidateQueries({ queryKey: ['files'] })
+    },
+  })
+}

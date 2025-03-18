@@ -12,6 +12,6 @@ export type CreateDocument = {
   name: string
   type: string
   size: number
-  folder_id?: number
+  folder_id?: number | null
   created_by: string
 }
