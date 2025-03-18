@@ -1,31 +1,36 @@
 import styled from 'styled-components'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary'
+  variant?: 'primary' | 'outline'
+  icon?: React.ReactNode
 }
 
 const StyledButton = styled.button<ButtonProps>`
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  border: none;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  background-color: white;
 
   ${({ variant = 'primary' }) =>
     variant === 'primary'
       ? `
-    background-color: #0066ff;
-    color: white;
+    color: #4169E1;
+    border: 1px solid #4169E1;
     &:hover {
-      background-color: #0052cc;
+      background-color: #F8F9FF;
     }
   `
       : `
-    background-color: #f0f0f0;
-    color: #333;
+    color: #4169E1;
+    border: 1px solid #4169E1;
     &:hover {
-      background-color: #e0e0e0;
+      background-color: #F8F9FF;
     }
   `}
 
@@ -35,6 +40,17 @@ const StyledButton = styled.button<ButtonProps>`
   }
 `
 
-export const Button = ({ children, ...props }: ButtonProps) => {
-  return <StyledButton {...props}>{children}</StyledButton>
+const IconWrapper = styled.span`
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+`
+
+export const Button = ({ children, icon, ...props }: ButtonProps) => {
+  return (
+    <StyledButton {...props}>
+      {icon && <IconWrapper>{icon}</IconWrapper>}
+      {children}
+    </StyledButton>
+  )
 }

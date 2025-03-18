@@ -18,18 +18,19 @@ const Label = styled.label`
 
 const StyledInput = styled.input`
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid #e5e7eb;
   border-radius: 4px;
   font-size: 14px;
   outline: none;
+  background-color: white;
   transition: border-color 0.2s;
 
   &:focus {
-    border-color: #0066ff;
+    border-color: #4169e1;
   }
 
   &:disabled {
-    background-color: #f5f5f5;
+    background-color: #f8f9ff;
     cursor: not-allowed;
   }
 `

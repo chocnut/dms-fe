@@ -1,0 +1,192 @@
+import { useState } from 'react'
+import styled from 'styled-components'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faFolder,
+  faFileLines,
+  faUpload,
+  faPlus,
+  faMagnifyingGlass,
+} from '@fortawesome/free-solid-svg-icons'
+import { useDocuments } from '@/hooks/useDocuments'
+import { useFolders, useCreateFolder } from '@/hooks/useFolders'
+import { Table } from '@/components/common/Table'
+import { Button } from '@/components/common/Button'
+import { Modal } from '@/components/common/Modal'
+import { Input } from '@/components/common/Input'
+import { TableItem } from '@/types/common'
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px;
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+`
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`
+
+const Title = styled.h1`
+  font-size: 24px;
+  color: #333;
+  margin: 0;
+`
+
+const Actions = styled.div`
+  display: flex;
+  gap: 12px;
+`
+
+const SearchContainer = styled.div`
+  position: relative;
+  width: 300px;
+`
+
+const SearchInput = styled.input`
+  width: 100%;
+  padding: 8px 16px;
+  padding-left: 40px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background-color: white;
+  color: #333;
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+
+  &:focus {
+    border-color: #4169e1;
+  }
+`
+
+const SearchIcon = styled.span`
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+`
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`
+
+export const FileList = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const { data: documents = [], isLoading: isLoadingDocs } = useDocuments()
+  const { data: folders = [], isLoading: isLoadingFolders } = useFolders()
+  const createFolder = useCreateFolder()
+
+  const items: TableItem[] = [
+    ...folders.map(folder => ({ ...folder, type: 'folder' as const })),
+    ...documents.map(doc => ({ ...doc, type: 'document' as const })),
+  ]
+
+  const columns = [
+    {
+      header: 'Name',
+      key: 'name' as keyof TableItem,
+      sortable: true,
+      render: (item: TableItem) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FontAwesomeIcon
+            icon={item.type === 'folder' ? faFolder : faFileLines}
+            style={{ color: item.type === 'folder' ? '#FFB800' : '#4169E1' }}
+          />
+          {item.name}
+        </div>
+      ),
+    },
+    { header: 'Created by', key: 'created_by' as keyof TableItem, sortable: true },
+    {
+      header: 'Date',
+      key: 'created_at' as keyof TableItem,
+      sortable: true,
+      render: (item: TableItem) =>
+        new Date(item.created_at).toLocaleDateString('en-US', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        }),
+    },
+    {
+      header: 'File size',
+      key: 'size' as keyof TableItem,
+      sortable: true,
+      render: (item: TableItem) => {
+        if (item.type === 'folder') return '-'
+        return `${item.size} KB`
+      },
+    },
+  ]
+
+  const handleCreateFolder = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const form = e.currentTarget
+    const formData = new FormData(form)
+
+    await createFolder.mutateAsync({
+      name: formData.get('name') as string,
+      created_by: 'User',
+    })
+
+    setIsModalOpen(false)
+  }
+
+  const filteredItems = items.filter(item =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  if (isLoadingDocs || isLoadingFolders) {
+    return <div>Loading...</div>
+  }
+
+  return (
+    <Container>
+      <Header>
+        <Title>Documents</Title>
+        <Actions>
+          <Button variant="outline" icon={<FontAwesomeIcon icon={faUpload} />}>
+            Upload files
+          </Button>
+          <Button icon={<FontAwesomeIcon icon={faPlus} />} onClick={() => setIsModalOpen(true)}>
+            Add new folder
+          </Button>
+        </Actions>
+      </Header>
+
+      <SearchContainer>
+        <SearchIcon>
+          <FontAwesomeIcon icon={faMagnifyingGlass} />
+        </SearchIcon>
+        <SearchInput
+          type="text"
+          placeholder="Search"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+        />
+      </SearchContainer>
+
+      <Table data={filteredItems} columns={columns} />
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Folder">
+        <Form onSubmit={handleCreateFolder}>
+          <Input label="Name" name="name" required />
+          <Button type="submit">Create</Button>
+        </Form>
+      </Modal>
+    </Container>
+  )
+}
