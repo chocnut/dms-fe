@@ -8,8 +8,7 @@ import {
   faPlus,
   faMagnifyingGlass,
 } from '@fortawesome/free-solid-svg-icons'
-import { useDocuments } from '@/hooks/useDocuments'
-import { useFolders, useCreateFolder } from '@/hooks/useFolders'
+import { useFiles, useCreateFolder } from '@/hooks/useFiles'
 import { Table } from '@/components/common/Table'
 import { Button } from '@/components/common/Button'
 import { Modal } from '@/components/common/Modal'
@@ -85,14 +84,8 @@ const Form = styled.form`
 export const FileList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const { data: documents = [], isLoading: isLoadingDocs } = useDocuments()
-  const { data: folders = [], isLoading: isLoadingFolders } = useFolders()
+  const { data: items = [], isLoading, error } = useFiles()
   const createFolder = useCreateFolder()
-
-  const items: TableItem[] = [
-    ...folders.map(folder => ({ ...folder, type: 'folder' as const })),
-    ...documents.map(doc => ({ ...doc, type: 'document' as const })),
-  ]
 
   const columns = [
     {
@@ -137,20 +130,41 @@ export const FileList = () => {
     const form = e.currentTarget
     const formData = new FormData(form)
 
-    await createFolder.mutateAsync({
-      name: formData.get('name') as string,
-      created_by: 'User',
-    })
-
-    setIsModalOpen(false)
+    try {
+      await createFolder.mutateAsync({
+        name: formData.get('name') as string,
+        created_by: 'User',
+      })
+      setIsModalOpen(false)
+    } catch (error) {
+      console.error('Failed to create folder:', error)
+    }
   }
 
   const filteredItems = items.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  if (isLoadingDocs || isLoadingFolders) {
-    return <div>Loading...</div>
+  if (isLoading) {
+    return (
+      <Container>
+        <Header>
+          <Title>Documents</Title>
+        </Header>
+        <div>Loading documents and folders...</div>
+      </Container>
+    )
+  }
+
+  if (error) {
+    return (
+      <Container>
+        <Header>
+          <Title>Documents</Title>
+        </Header>
+        <div>Error loading documents and folders. Please try again later.</div>
+      </Container>
+    )
   }
 
   return (
@@ -173,7 +187,7 @@ export const FileList = () => {
         </SearchIcon>
         <SearchInput
           type="text"
-          placeholder="Search"
+          placeholder="Search files and folders"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
         />
@@ -184,7 +198,9 @@ export const FileList = () => {
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Folder">
         <Form onSubmit={handleCreateFolder}>
           <Input label="Name" name="name" required />
-          <Button type="submit">Create</Button>
+          <Button type="submit" disabled={createFolder.isPending}>
+            {createFolder.isPending ? 'Creating...' : 'Create'}
+          </Button>
         </Form>
       </Modal>
     </Container>
