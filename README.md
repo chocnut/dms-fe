@@ -1,4 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Document Management System Frontend
+
+Frontend application for the Document Management System built with Next.js 14.
+
+## Tech Stack
+
+- Next.js 14
+- TypeScript
+- Styled Components
+- React Query
+- Zustand
+
+## Development
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm dev
+
+# Build for production
+pnpm build
+
+# Start production server
+pnpm start
+
+# Run linting
+pnpm lint
+
+# Fix linting issues
+pnpm lint:fix
+
+# Format code
+pnpm format
+```
+
+## Git Commit Guidelines
+
+This project follows conventional commits specification. Commit messages should be structured as follows:
+
+```
+<type>(<scope>): <subject>
+```
+
+Types:
+- feat: New feature
+- fix: Bug fix
+- docs: Documentation
+- style: Formatting
+- refactor: Code restructuring
+- perf: Performance improvements
+- test: Tests
+- build: Build system
+- ci: CI/CD
+- chore: Maintenance
+- revert: Revert changes
 
 ## Getting Started
 
