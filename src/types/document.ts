@@ -8,12 +8,10 @@ export interface Document {
   created_at: string
 }
 
-export interface DocumentResponse {
-  status: string
-  data: Document[]
-}
-
-export interface SingleDocumentResponse {
-  status: string
-  data: Document
+export type CreateDocument = {
+  name: string
+  type: string
+  size: number
+  folder_id?: number
+  created_by: string
 }

@@ -6,6 +6,12 @@ export interface Folder {
   created_at: string
 }
 
+export type CreateFolder = {
+  name: string
+  parent_id?: number
+  created_by: string
+}
+
 export interface FolderResponse {
   status: string
   data: Folder[]
