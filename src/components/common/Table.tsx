@@ -13,7 +13,6 @@ import {
 const TableWrapper = styled.div`
   width: 100%;
   overflow-x: auto;
-  padding: 32px;
   background-color: white;
   border-radius: 8px;
 `

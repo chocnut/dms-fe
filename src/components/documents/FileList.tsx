@@ -13,6 +13,7 @@ import { Table } from '@/components/common/Table'
 import { Button } from '@/components/common/Button'
 import { Modal } from '@/components/common/Modal'
 import { Input } from '@/components/common/Input'
+import { Spinner } from '@/components/common/Spinner'
 import { TableItem } from '@/types/common'
 
 const Container = styled.div`
@@ -148,10 +149,7 @@ export const FileList = () => {
   if (isLoading) {
     return (
       <Container>
-        <Header>
-          <Title>Documents</Title>
-        </Header>
-        <div>Loading documents and folders...</div>
+        <Spinner />
       </Container>
     )
   }
@@ -159,10 +157,17 @@ export const FileList = () => {
   if (error) {
     return (
       <Container>
-        <Header>
-          <Title>Documents</Title>
-        </Header>
-        <div>Error loading documents and folders. Please try again later.</div>
+        <div
+          style={{
+            padding: '32px',
+            color: '#EF4444',
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            textAlign: 'center',
+          }}
+        >
+          Error loading documents and folders. Please try again later.
+        </div>
       </Container>
     )
   }
