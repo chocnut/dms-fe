@@ -64,3 +64,43 @@ pnpm test:watch
 pnpm test:coverage
 ```
 
+## Usage Guide
+
+### File Upload
+
+The system uses a mock file upload process:
+
+1. Click the "Upload Files" button in the interface
+2. When you select files from your computer:
+   - The system will NOT upload your actual files
+   - Instead, it will generate random mock documents
+   - These mock documents will be saved to the database
+   - Each document will have a randomly generated name and type
+
+Note: This is a demo feature that simulates file upload without actually processing real files.
+
+### Folder Management
+
+Creating new folders:
+
+1. Click the "New Folder" button
+2. Enter a name for your folder in the input field
+3. Click "Create" to save
+4. The new folder will be:
+   - Created in the current location
+   - Saved to the database
+   - Immediately visible in the interface
+
+Folder features:
+- Create folders at any level in the hierarchy
+- View folder contents
+- Navigate through folder structure
+
+### File and Folder Organization
+
+The system supports a hierarchical structure:
+- Root level folders and files
+- Nested subfolders
+- Drag and drop to move files/folders
+- Breadcrumb navigation for easy folder traversal
+
