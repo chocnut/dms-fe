@@ -32,19 +32,27 @@ interface UseFilesOptions {
   page?: number
   limit?: number
   search?: string
+  sort?: {
+    key: string
+    direction: 'asc' | 'desc'
+  }
 }
 
 export const useFiles = (folderId?: number | null, options: UseFilesOptions = {}) => {
-  const { page = 1, limit = 10, search = '' } = options
+  const { page = 1, limit = 10, search = '', sort } = options
 
   return useQuery({
-    queryKey: ['files', folderId, page, limit, search],
+    queryKey: ['files', folderId, page, limit, search, sort?.key, sort?.direction],
     queryFn: async () => {
       const params = new URLSearchParams()
       if (folderId) params.append('folder_id', String(folderId))
       params.append('page', String(page))
       params.append('limit', String(limit))
       if (search) params.append('search', search)
+      if (sort) {
+        params.append('sort', sort.key)
+        params.append('order', sort.direction)
+      }
 
       const response = await api.get<ApiResponse>(`/files?${params.toString()}`)
       return response.data

@@ -16,14 +16,14 @@ const StyledTable = styled.table`
   border-collapse: collapse;
 `
 
-const Th = styled.th<{ sortable?: boolean }>`
+const Th = styled.th<{ sortable?: string }>`
   padding: 16px;
   text-align: left;
   background-color: #1e1b4b;
   color: white;
   font-weight: 500;
   font-size: 14px;
-  cursor: ${props => (props.sortable ? 'pointer' : 'default')};
+  cursor: ${props => (props.sortable === 'true' ? 'pointer' : 'default')};
   white-space: nowrap;
 
   &:first-child {
@@ -37,7 +37,7 @@ const Th = styled.th<{ sortable?: boolean }>`
   }
 
   &:hover {
-    background-color: ${props => (props.sortable ? '#2e2a5c' : '#1e1b4b')};
+    background-color: ${props => (props.sortable === 'true' ? '#2e2a5c' : '#1e1b4b')};
   }
 `
 
@@ -138,14 +138,14 @@ const PaginationControls = styled.div`
   gap: 8px;
 `
 
-const PageNumber = styled.button<{ active?: boolean }>`
+const PageNumber = styled.button<{ active?: string }>`
   padding: 8px 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid ${props => (props.active ? '#4169e1' : '#e5e7eb')};
-  background: ${props => (props.active ? '#4169e1' : 'white')};
-  color: ${props => (props.active ? 'white' : '#374151')};
+  border: 1px solid ${props => (props.active === 'true' ? '#4169e1' : '#e5e7eb')};
+  background: ${props => (props.active === 'true' ? '#4169e1' : 'white')};
+  color: ${props => (props.active === 'true' ? 'white' : '#374151')};
   font-size: 14px;
   border-radius: 6px;
   cursor: pointer;
@@ -154,7 +154,7 @@ const PageNumber = styled.button<{ active?: boolean }>`
 
   &:hover {
     border-color: #4169e1;
-    color: ${props => (props.active ? 'white' : '#4169e1')};
+    color: ${props => (props.active === 'true' ? 'white' : '#4169e1')};
   }
 
   &:disabled {
@@ -192,18 +192,19 @@ const RowsSelect = styled.select`
   }
 `
 
-interface Column<T> {
+interface Column<T, K extends keyof T = keyof T> {
   header: string
-  key: keyof T
+  key: K
   sortable?: boolean
   render?: (item: T) => React.ReactNode
+  headerRender?: () => React.ReactNode
 }
 
-interface TableProps<T> {
+interface TableProps<T, K extends keyof T = keyof T> {
   data: T[]
-  columns: Column<T>[]
-  onSort?: (key: keyof T) => void
-  sortKey?: keyof T
+  columns: Column<T, K>[]
+  onSort?: (key: K) => void
+  sortKey?: K
   sortDirection?: 'asc' | 'desc'
   page?: number
   totalPages?: number
@@ -212,7 +213,7 @@ interface TableProps<T> {
   onRowsPerPageChange?: (rows: number) => void
 }
 
-export function Table<T extends { id?: number | string }>({
+export function Table<T extends { id?: number | string }, K extends keyof T = keyof T>({
   data,
   columns,
   onSort,
@@ -223,7 +224,7 @@ export function Table<T extends { id?: number | string }>({
   rowsPerPage = 10,
   onPageChange,
   onRowsPerPageChange,
-}: TableProps<T>) {
+}: TableProps<T, K>) {
   const [selectedRows, setSelectedRows] = useState<Set<string | number>>(new Set())
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -251,7 +252,7 @@ export function Table<T extends { id?: number | string }>({
     })
   }
 
-  const renderSortIcon = (column: Column<T>) => {
+  const renderSortIcon = (column: Column<T, K>) => {
     if (!column.sortable) return null
     if (sortKey !== column.key) {
       return (
@@ -290,11 +291,17 @@ export function Table<T extends { id?: number | string }>({
               </Th>
               {columns.map(column => (
                 <Th
-                  key={column.key as string}
-                  sortable={column.sortable}
+                  key={String(column.key)}
                   onClick={() => column.sortable && onSort?.(column.key)}
+                  sortable={column.sortable ? 'true' : undefined}
                 >
-                  {column.header} {renderSortIcon(column)}
+                  {column.headerRender ? (
+                    column.headerRender()
+                  ) : (
+                    <>
+                      {column.header} {renderSortIcon(column)}
+                    </>
+                  )}
                 </Th>
               ))}
               <Th></Th>
@@ -341,13 +348,13 @@ export function Table<T extends { id?: number | string }>({
           <NavigationButton onClick={() => onPageChange?.(page - 1)} disabled={page === 1}>
             Previous
           </NavigationButton>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+          {Array.from({ length: totalPages }, (_, i) => (
             <PageNumber
-              key={pageNum}
-              active={pageNum === page}
-              onClick={() => onPageChange?.(pageNum)}
+              key={i + 1}
+              onClick={() => onPageChange?.(i + 1)}
+              active={i + 1 === page ? 'true' : undefined}
             >
-              {pageNum}
+              {i + 1}
             </PageNumber>
           ))}
           <NavigationButton onClick={() => onPageChange?.(page + 1)} disabled={page === totalPages}>

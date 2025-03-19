@@ -10,6 +10,7 @@ import {
   faUpload,
   faPlus,
   faMagnifyingGlass,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons'
 import { useFiles, useCreateFolder } from '@/hooks/useFiles'
 import { useUploadDocument } from '@/hooks/useDocuments'
@@ -55,6 +56,7 @@ const SearchInput = styled.input`
   width: 100%;
   padding: 8px 16px;
   padding-left: 40px;
+  padding-right: 40px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
@@ -79,6 +81,29 @@ const SearchIcon = styled.span`
   color: #9ca3af;
 `
 
+const ClearButton = styled.button`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+
+  &:hover {
+    background-color: #f3f4f6;
+    color: #4169e1;
+  }
+`
+
 const Form = styled.form`
   display: flex;
   flex-direction: column;
@@ -92,6 +117,13 @@ const HiddenInput = styled.input`
 interface FileListProps {
   initialFolderId?: number | null
   folderPath?: string[]
+}
+
+type SortableKeys = 'name' | 'type' | 'size' | 'created_at'
+
+interface SortConfig {
+  key: SortableKeys
+  direction: 'asc' | 'desc'
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -110,22 +142,34 @@ export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) =>
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [folderName, setFolderName] = useState('')
   const [currentFolderId, setCurrentFolderId] = useState<number | null>(initialFolderId ?? null)
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'created_at', direction: 'desc' })
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setCurrentFolderId(initialFolderId ?? null)
     setCurrentPage(1)
     setSearchTerm('')
+    setDebouncedSearchTerm('')
   }, [initialFolderId])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   const { data, error } = useFiles(currentFolderId, {
     page: currentPage,
     limit: rowsPerPage,
-    search: searchTerm,
+    search: debouncedSearchTerm,
+    sort: sortConfig,
   })
 
   const createFolder = useCreateFolder()
@@ -239,6 +283,22 @@ export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) =>
     setCurrentPage(1)
   }
 
+  const handleClearSearch = () => {
+    setSearchTerm('')
+    setCurrentPage(1)
+  }
+
+  const handleSort = (key: keyof TableItem) => {
+    if (key === 'name' || key === 'type' || key === 'size' || key === 'created_at') {
+      setSortConfig(prevConfig => ({
+        key: key as SortConfig['key'],
+        direction:
+          prevConfig.key === key ? (prevConfig.direction === 'asc' ? 'desc' : 'asc') : 'asc',
+      }))
+      setCurrentPage(1)
+    }
+  }
+
   const displayedItems = items
 
   const columns = [
@@ -278,7 +338,8 @@ export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) =>
     {
       header: 'Created By',
       key: 'created_by' as keyof TableItem,
-      sortable: true,
+      sortable: false,
+      render: (item: TableItem) => item.created_by,
     },
     {
       header: 'Created At',
@@ -344,11 +405,17 @@ export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) =>
           value={searchTerm}
           onChange={handleSearchChange}
         />
+        {searchTerm && (
+          <ClearButton onClick={handleClearSearch} type="button">
+            <FontAwesomeIcon icon={faXmark} />
+          </ClearButton>
+        )}
       </SearchContainer>
 
       <HiddenInput
         ref={fileInputRef}
         type="file"
+        data-testid="file-input"
         onChange={handleFileChange}
         accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
       />
@@ -361,6 +428,9 @@ export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) =>
         rowsPerPage={rowsPerPage}
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
+        sortKey={sortConfig.key}
+        sortDirection={sortConfig.direction}
+        onSort={handleSort as (key: keyof TableItem) => void}
       />
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Folder">
