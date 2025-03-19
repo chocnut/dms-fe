@@ -2,7 +2,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import { TableItem } from '@/types/common'
 
 interface ApiResponse {
   status: 'success' | 'error'
@@ -29,24 +28,27 @@ interface CreateFolderData {
   parent_id: number | null
 }
 
-export const useFiles = (folderId: number | null = null) => {
-  return useQuery<TableItem[]>({
-    queryKey: ['files', folderId],
+interface UseFilesOptions {
+  page?: number
+  limit?: number
+  search?: string
+}
+
+export const useFiles = (folderId?: number | null, options: UseFilesOptions = {}) => {
+  const { page = 1, limit = 10, search = '' } = options
+
+  return useQuery({
+    queryKey: ['files', folderId, page, limit, search],
     queryFn: async () => {
-      console.log('Fetching files for folder:', folderId)
-      const response = await api.get<ApiResponse>('/files', {
-        params: { parent_id: folderId },
-      })
-      console.log('API response:', response.data)
-      return response.data.data.map(item => ({
-        ...item,
-        id: Number(item.id),
-        created_at: new Date(item.created_at).toISOString(),
-      }))
+      const params = new URLSearchParams()
+      if (folderId) params.append('folder_id', String(folderId))
+      params.append('page', String(page))
+      params.append('limit', String(limit))
+      if (search) params.append('search', search)
+
+      const response = await api.get<ApiResponse>(`/files?${params.toString()}`)
+      return response.data
     },
-    staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
-    gcTime: 30 * 60 * 1000, // Cache is kept for 30 minutes
-    refetchOnWindowFocus: false, // Don't refetch when window regains focus
   })
 }
 
@@ -55,13 +57,12 @@ export const useCreateFolder = () => {
 
   return useMutation({
     mutationFn: async (data: CreateFolderData) => {
-      console.log('Creating folder:', data)
       const response = await api.post('/folders', data)
-      console.log('Create folder response:', response.data)
       return response.data
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['files'] })
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['files', variables.parent_id] })
+      queryClient.invalidateQueries({ queryKey: ['files', null] })
     },
   })
 }

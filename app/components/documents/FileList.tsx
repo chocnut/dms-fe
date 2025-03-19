@@ -102,24 +102,41 @@ const formatFileSize = (bytes: number): string => {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
 }
 
+const getRandomElement = <T,>(array: T[]): T => {
+  return array[Math.floor(Math.random() * array.length)]
+}
+
 export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) => {
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [folderName, setFolderName] = useState('')
   const [currentFolderId, setCurrentFolderId] = useState<number | null>(initialFolderId ?? null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { data: items = [], error } = useFiles(currentFolderId)
-  const createFolder = useCreateFolder()
-  const uploadDocument = useUploadDocument()
 
   useEffect(() => {
     setCurrentFolderId(initialFolderId ?? null)
+    setCurrentPage(1)
+    setSearchTerm('')
   }, [initialFolderId])
+
+  const { data, error } = useFiles(currentFolderId, {
+    page: currentPage,
+    limit: rowsPerPage,
+    search: searchTerm,
+  })
+
+  const createFolder = useCreateFolder()
+  const uploadDocument = useUploadDocument()
+
+  const items = data?.data ?? []
+  const pagination = data?.pagination
 
   const handleFolderClick = useCallback(
     (item: TableItem) => {
       if (item.type === 'folder') {
-        setCurrentFolderId(item.id)
         const newPath = [...folderPath]
         if (item.id !== null) {
           newPath.push(item.id.toString())
@@ -139,13 +156,51 @@ export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) =>
     if (!file) return
 
     try {
-      await uploadDocument.mutateAsync({
-        name: file.name,
-        type: file.type,
-        size: file.size,
+      const documentTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/jpeg',
+        'image/png',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain',
+      ]
+
+      const fileNames = [
+        'report',
+        'document',
+        'presentation',
+        'spreadsheet',
+        'image',
+        'contract',
+        'invoice',
+        'proposal',
+        'meeting_notes',
+        'budget',
+        'analysis',
+        'summary',
+        'plan',
+        'review',
+        'checklist',
+      ]
+
+      const type = getRandomElement(documentTypes)
+      const extension = type.split('/')[1]
+      const baseName = getRandomElement(fileNames)
+      const randomNumber = Math.floor(Math.random() * 1000)
+      const date = new Date()
+      date.setDate(date.getDate() - Math.floor(Math.random() * 365))
+
+      const randomDocument = {
+        name: `${baseName}_${randomNumber}.${extension}`,
+        type,
+        size: Math.floor(Math.random() * (10485760 - 1024 + 1)) + 1024,
         created_by: 'John Green',
         folder_id: currentFolderId,
-      })
+      }
+
+      await uploadDocument.mutateAsync(randomDocument)
 
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
@@ -155,22 +210,36 @@ export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) =>
     }
   }
 
-  const handleCreateFolder = async () => {
+  const handleCreateFolder = async (e: React.FormEvent) => {
+    e.preventDefault()
     try {
       await createFolder.mutateAsync({
-        name: 'New Folder',
+        name: folderName,
         created_by: 'John Green',
         parent_id: currentFolderId,
       })
       setIsModalOpen(false)
+      setFolderName('')
     } catch (error) {
       console.error('Error creating folder:', error)
     }
   }
 
-  const filteredItems = items.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleRowsPerPageChange = (rows: number) => {
+    setRowsPerPage(rows)
+    setCurrentPage(1)
+  }
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+    setCurrentPage(1)
+  }
+
+  const displayedItems = items
 
   const columns = [
     {
@@ -189,7 +258,7 @@ export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) =>
         >
           <FontAwesomeIcon
             icon={item.type === 'folder' ? faFolder : faFileLines}
-            style={{ color: item.type === 'folder' ? '#4169E1' : '#666' }}
+            style={{ color: item.type === 'folder' ? '#FFB800' : '#4169E1' }}
           />
           {item.name}
         </div>
@@ -273,7 +342,7 @@ export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) =>
           type="text"
           placeholder="Search files and folders"
           value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
+          onChange={handleSearchChange}
         />
       </SearchContainer>
 
@@ -284,11 +353,27 @@ export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) =>
         accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
       />
 
-      <Table data={filteredItems} columns={columns} />
+      <Table
+        data={displayedItems}
+        columns={columns}
+        page={currentPage}
+        totalPages={pagination?.totalPages || 1}
+        rowsPerPage={rowsPerPage}
+        onPageChange={handlePageChange}
+        onRowsPerPageChange={handleRowsPerPageChange}
+      />
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Folder">
         <Form onSubmit={handleCreateFolder}>
-          <Input type="text" name="name" placeholder="Enter folder name" required autoFocus />
+          <Input
+            type="text"
+            name="name"
+            placeholder="Enter folder name"
+            required
+            autoFocus
+            value={folderName}
+            onChange={e => setFolderName(e.target.value)}
+          />
           <Button
             type="submit"
             variant="primary"

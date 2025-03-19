@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+const baseURL = process.env.NEXT_PUBLIC_API_URL
 console.log('API base URL:', baseURL)
 
 export const api = axios.create({
@@ -10,10 +10,8 @@ export const api = axios.create({
   },
 })
 
-// Add response interceptor to handle API response structure
 api.interceptors.response.use(
   response => {
-    // If the response has a data.data structure, return the nested data
     if (response.data && typeof response.data === 'object' && 'data' in response.data) {
       return { ...response, data: response.data }
     }

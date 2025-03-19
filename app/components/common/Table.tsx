@@ -1,38 +1,30 @@
 import styled from 'styled-components'
 import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faSort,
-  faSortUp,
-  faSortDown,
-  faEllipsisVertical,
-  faChevronLeft,
-  faChevronRight,
-} from '@fortawesome/free-solid-svg-icons'
+import { faSort, faSortUp, faSortDown, faEllipsisVertical } from '@fortawesome/free-solid-svg-icons'
 
 const TableWrapper = styled.div`
   width: 100%;
   overflow-x: auto;
   background-color: white;
   border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 `
 
 const StyledTable = styled.table`
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 8px;
 `
 
 const Th = styled.th<{ sortable?: boolean }>`
   padding: 16px;
   text-align: left;
-  background-color: #f8f9ff;
-  color: #4169e1;
+  background-color: #1e1b4b;
+  color: white;
   font-weight: 500;
   font-size: 14px;
   cursor: ${props => (props.sortable ? 'pointer' : 'default')};
   white-space: nowrap;
-  border-bottom: 1px solid #e5e7eb;
 
   &:first-child {
     padding-left: 32px;
@@ -43,12 +35,16 @@ const Th = styled.th<{ sortable?: boolean }>`
     padding-right: 32px;
     border-top-right-radius: 8px;
   }
+
+  &:hover {
+    background-color: ${props => (props.sortable ? '#2e2a5c' : '#1e1b4b')};
+  }
 `
 
 const Td = styled.td`
   padding: 16px;
-  border-bottom: 1px solid #eee;
-  color: #333;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
   font-size: 14px;
 
   &:first-child {
@@ -61,8 +57,10 @@ const Td = styled.td`
 `
 
 const SortIcon = styled.span`
-  margin-left: 4px;
+  margin-left: 8px;
   font-size: 12px;
+  display: inline-flex;
+  align-items: center;
 `
 
 const Tr = styled.tr`
@@ -75,7 +73,7 @@ const Checkbox = styled.input.attrs({ type: 'checkbox' })`
   width: 16px;
   height: 16px;
   margin: 0;
-  border: 1px solid #9ca3af;
+  border: 1.5px solid #9ca3af;
   border-radius: 4px;
   background-color: white;
   cursor: pointer;
@@ -106,65 +104,91 @@ const MoreButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
-  color: #9ca3af;
+  padding: 4px 8px;
+  color: #6b7280;
   font-size: 16px;
+  border-radius: 4px;
 
   &:hover {
+    background-color: #f3f4f6;
     color: #4169e1;
   }
 `
 
-const PaginationWrapper = styled.div`
+const PaginationContainer = styled.div`
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   padding: 16px 32px;
-  border-top: 1px solid #eee;
-  margin-top: 8px;
+  background: white;
+  border-top: 1px solid #e5e7eb;
 `
 
-const PageSelector = styled.div`
+const RowsPerPageContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 14px;
+`
+
+const PaginationControls = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
 `
 
-const PageButton = styled.button<{ active?: boolean }>`
-  padding: 6px 12px;
-  border: 1px solid ${props => (props.active ? '#4169E1' : '#E5E7EB')};
-  background: white;
-  color: ${props => (props.active ? '#4169E1' : '#666')};
+const PageNumber = styled.button<{ active?: boolean }>`
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid ${props => (props.active ? '#4169e1' : '#e5e7eb')};
+  background: ${props => (props.active ? '#4169e1' : 'white')};
+  color: ${props => (props.active ? 'white' : '#374151')};
+  font-size: 14px;
+  border-radius: 6px;
   cursor: pointer;
-  border-radius: 4px;
+  transition: all 0.2s;
+  min-width: 40px;
 
   &:hover {
-    background: ${props => (props.active ? '#F8F9FF' : '#F8F9FF')};
     border-color: #4169e1;
+    color: ${props => (props.active ? 'white' : '#4169e1')};
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+    pointer-events: none;
   }
 `
 
-const RowsPerPage = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
+const NavigationButton = styled(PageNumber)`
+  min-width: auto;
+  white-space: nowrap;
 `
 
-const Select = styled.select`
-  padding: 4px 8px;
+const RowsSelect = styled.select`
+  padding: 6px 8px;
   border: 1px solid #e5e7eb;
-  border-radius: 4px;
-  background-color: white;
+  border-radius: 6px;
+  background: white;
   color: #374151;
+  font-size: 14px;
   cursor: pointer;
+  min-width: 70px;
 
   &:hover {
     border-color: #4169e1;
   }
 
   &:focus {
-    border-color: #4169e1;
     outline: none;
+    border-color: #4169e1;
+    box-shadow: 0 0 0 2px rgba(65, 105, 225, 0.1);
   }
 `
 
@@ -181,6 +205,11 @@ interface TableProps<T> {
   onSort?: (key: keyof T) => void
   sortKey?: keyof T
   sortDirection?: 'asc' | 'desc'
+  page?: number
+  totalPages?: number
+  rowsPerPage?: number
+  onPageChange?: (page: number) => void
+  onRowsPerPageChange?: (rows: number) => void
 }
 
 export function Table<T extends { id?: number | string }>({
@@ -189,13 +218,16 @@ export function Table<T extends { id?: number | string }>({
   onSort,
   sortKey,
   sortDirection,
+  page = 1,
+  totalPages = 1,
+  rowsPerPage = 10,
+  onPageChange,
+  onRowsPerPageChange,
 }: TableProps<T>) {
   const [selectedRows, setSelectedRows] = useState<Set<string | number>>(new Set())
-  const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [currentPage, setCurrentPage] = useState(1)
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const visibleIds = paginatedData.map(item => item.id!).filter(id => id !== undefined)
+    const visibleIds = data.map(item => item.id!).filter(id => id !== undefined)
     if (e.target.checked) {
       setSelectedRows(new Set(visibleIds))
     } else {
@@ -235,16 +267,9 @@ export function Table<T extends { id?: number | string }>({
     )
   }
 
-  const totalPages = Math.ceil(data.length / rowsPerPage)
-  const startIndex = (currentPage - 1) * rowsPerPage
-  const paginatedData = data.slice(startIndex, startIndex + rowsPerPage)
-
-  const isAllCurrentPageSelected = paginatedData.every(
-    item => item.id !== undefined && selectedRows.has(item.id)
-  )
-  const isSomeCurrentPageSelected =
-    paginatedData.some(item => item.id !== undefined && selectedRows.has(item.id)) &&
-    !isAllCurrentPageSelected
+  const isAllSelected = data.every(item => item.id !== undefined && selectedRows.has(item.id))
+  const isSomeSelected =
+    data.some(item => item.id !== undefined && selectedRows.has(item.id)) && !isAllSelected
 
   return (
     <>
@@ -254,10 +279,10 @@ export function Table<T extends { id?: number | string }>({
             <tr>
               <Th>
                 <Checkbox
-                  checked={isAllCurrentPageSelected}
+                  checked={isAllSelected}
                   ref={checkbox => {
                     if (checkbox) {
-                      checkbox.indeterminate = isSomeCurrentPageSelected
+                      checkbox.indeterminate = isSomeSelected
                     }
                   }}
                   onChange={handleSelectAll}
@@ -276,7 +301,7 @@ export function Table<T extends { id?: number | string }>({
             </tr>
           </thead>
           <tbody>
-            {paginatedData.map((item, index) => (
+            {data.map((item, index) => (
               <Tr key={item.id || index}>
                 <Td>
                   <Checkbox
@@ -299,40 +324,37 @@ export function Table<T extends { id?: number | string }>({
           </tbody>
         </StyledTable>
       </TableWrapper>
-      <PaginationWrapper>
-        <RowsPerPage>
+      <PaginationContainer>
+        <RowsPerPageContainer>
           <span>Show</span>
-          <Select value={rowsPerPage} onChange={e => setRowsPerPage(Number(e.target.value))}>
+          <RowsSelect
+            value={rowsPerPage}
+            onChange={e => onRowsPerPageChange?.(Number(e.target.value))}
+          >
             <option value={10}>10</option>
             <option value={25}>25</option>
             <option value={50}>50</option>
-          </Select>
+          </RowsSelect>
           <span>rows per page</span>
-        </RowsPerPage>
-        <PageSelector>
-          <PageButton
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-          >
-            <FontAwesomeIcon icon={faChevronLeft} />
-          </PageButton>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <PageButton
-              key={i + 1}
-              active={currentPage === i + 1}
-              onClick={() => setCurrentPage(i + 1)}
+        </RowsPerPageContainer>
+        <PaginationControls>
+          <NavigationButton onClick={() => onPageChange?.(page - 1)} disabled={page === 1}>
+            Previous
+          </NavigationButton>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+            <PageNumber
+              key={pageNum}
+              active={pageNum === page}
+              onClick={() => onPageChange?.(pageNum)}
             >
-              {i + 1}
-            </PageButton>
+              {pageNum}
+            </PageNumber>
           ))}
-          <PageButton
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-          >
-            <FontAwesomeIcon icon={faChevronRight} />
-          </PageButton>
-        </PageSelector>
-      </PaginationWrapper>
+          <NavigationButton onClick={() => onPageChange?.(page + 1)} disabled={page === totalPages}>
+            Next
+          </NavigationButton>
+        </PaginationControls>
+      </PaginationContainer>
     </>
   )
 }

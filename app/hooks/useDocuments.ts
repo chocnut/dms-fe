@@ -28,7 +28,6 @@ export const useUploadDocument = () => {
       return response.data
     },
     onSuccess: (_, variables) => {
-      // Invalidate both the current folder's files and root folder files
       queryClient.invalidateQueries({ queryKey: ['files', variables.folder_id] })
       queryClient.invalidateQueries({ queryKey: ['files', null] })
     },
