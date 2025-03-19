@@ -1,5 +1,7 @@
+'use client'
+
 import { FileList } from '@/components/documents/FileList'
 
-export const MainPage = () => {
+export function DocumentsContent() {
   return <FileList />
 }

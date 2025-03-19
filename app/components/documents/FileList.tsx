@@ -1,4 +1,6 @@
-import { useState, useRef } from 'react'
+'use client'
+
+import { useState, useRef, useCallback, useEffect } from 'react'
 import styled from 'styled-components'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -7,6 +9,8 @@ import {
   faUpload,
   faPlus,
   faMagnifyingGlass,
+  faChevronRight,
+  faHome,
 } from '@fortawesome/free-solid-svg-icons'
 import { useFiles, useCreateFolder } from '@/hooks/useFiles'
 import { useUploadDocument } from '@/hooks/useDocuments'
@@ -87,13 +91,79 @@ const HiddenInput = styled.input`
   display: none;
 `
 
-export const FileList = () => {
+const BreadcrumbContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  background-color: white;
+  border-radius: 8px;
+`
+
+const BreadcrumbItem = styled.button<{ isActive?: boolean }>`
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  color: ${props => (props.isActive ? '#4169E1' : '#666')};
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    color: #4169e1;
+  }
+`
+
+const BreadcrumbSeparator = styled.span`
+  color: #9ca3af;
+  font-size: 12px;
+`
+
+interface BreadcrumbItem {
+  id: number | null
+  name: string
+}
+
+interface FileListProps {
+  initialFolderId?: number | null
+}
+
+export const FileList = ({ initialFolderId }: FileListProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [currentFolderId, setCurrentFolderId] = useState<number | null>(initialFolderId ?? null)
+  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([{ id: null, name: 'Home' }])
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { data: items = [], isLoading, error } = useFiles()
+  const { data: items = [], isLoading, error } = useFiles(currentFolderId)
   const createFolder = useCreateFolder()
   const uploadDocument = useUploadDocument()
+
+  useEffect(() => {
+    if (initialFolderId) {
+      // TODO: Fetch folder details and update breadcrumbs
+      setBreadcrumbs([
+        { id: null, name: 'Home' },
+        { id: initialFolderId, name: `Folder ${initialFolderId}` },
+      ])
+    }
+  }, [initialFolderId])
+
+  const handleFolderClick = useCallback((item: TableItem) => {
+    if (item.type === 'folder') {
+      const folderId = typeof item.id === 'string' ? parseInt(item.id, 10) : item.id
+      setCurrentFolderId(folderId)
+      setBreadcrumbs(prev => [...prev, { id: folderId, name: item.name }])
+    }
+  }, [])
+
+  const handleBreadcrumbClick = (index: number) => {
+    const newBreadcrumbs = breadcrumbs.slice(0, index + 1)
+    setBreadcrumbs(newBreadcrumbs)
+    setCurrentFolderId(newBreadcrumbs[newBreadcrumbs.length - 1].id)
+  }
 
   const handleUploadClick = () => {
     fileInputRef.current?.click()
@@ -109,13 +179,12 @@ export const FileList = () => {
         type: file.type,
         size: file.size,
         created_by: 'John Green',
-        folder_id: null,
+        folder_id: currentFolderId,
       })
     } catch (error) {
       console.error('Failed to upload file:', error)
     }
 
-    // Reset the input
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -127,7 +196,15 @@ export const FileList = () => {
       key: 'name' as keyof TableItem,
       sortable: true,
       render: (item: TableItem) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: item.type === 'folder' ? 'pointer' : 'default',
+          }}
+          onClick={() => handleFolderClick(item)}
+        >
           <FontAwesomeIcon
             icon={item.type === 'folder' ? faFolder : faFileLines}
             style={{ color: item.type === 'folder' ? '#FFB800' : '#4169E1' }}
@@ -169,6 +246,7 @@ export const FileList = () => {
       await createFolder.mutateAsync({
         name,
         created_by: 'John Green',
+        parent_id: currentFolderId,
       })
       setIsModalOpen(false)
     } catch (error) {
@@ -176,7 +254,7 @@ export const FileList = () => {
     }
   }
 
-  const filteredItems = items.filter(item =>
+  const filteredItems = (items ?? []).filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
@@ -219,11 +297,40 @@ export const FileList = () => {
           >
             {uploadDocument.isPending ? 'Uploading...' : 'Upload files'}
           </Button>
-          <Button icon={<FontAwesomeIcon icon={faPlus} />} onClick={() => setIsModalOpen(true)}>
+          <Button
+            icon={<FontAwesomeIcon icon={faPlus} />}
+            onClick={() => setIsModalOpen(true)}
+            variant="primary"
+          >
             Add new folder
           </Button>
         </Actions>
       </Header>
+
+      <BreadcrumbContainer>
+        {breadcrumbs.map((crumb, index) => (
+          <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
+            {index > 0 && (
+              <BreadcrumbSeparator>
+                <FontAwesomeIcon icon={faChevronRight} />
+              </BreadcrumbSeparator>
+            )}
+            <BreadcrumbItem
+              onClick={() => handleBreadcrumbClick(index)}
+              isActive={index === breadcrumbs.length - 1}
+            >
+              {index === 0 ? (
+                <>
+                  <FontAwesomeIcon icon={faHome} />
+                  {crumb.name}
+                </>
+              ) : (
+                crumb.name
+              )}
+            </BreadcrumbItem>
+          </div>
+        ))}
+      </BreadcrumbContainer>
 
       <HiddenInput
         ref={fileInputRef}

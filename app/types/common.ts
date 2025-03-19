@@ -1,5 +1,5 @@
-export type TableItem = {
-  id: number | string
+export interface TableItem {
+  id: number
   name: string
   type: 'folder' | 'document'
   created_by: string
