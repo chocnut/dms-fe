@@ -92,6 +92,7 @@ Creating new folders:
    - Immediately visible in the interface
 
 Folder features:
+
 - Create folders at any level in the hierarchy
 - View folder contents
 - Navigate through folder structure
@@ -99,7 +100,6 @@ Folder features:
 ### File and Folder Organization
 
 The system supports a hierarchical structure:
+
 - Root level folders and files
 - Nested subfolders
-- Breadcrumb navigation for easy folder traversal
-
