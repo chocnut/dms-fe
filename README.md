@@ -12,17 +12,10 @@ Frontend application for the Document Management System built with Next.js 14.
 
 ## Environment Setup
 
-1. Copy `.env.example` to `.env.local`:
+Copy `.env.example` to `.env.local`:
 ```bash
 cp .env.example .env.local
 ```
-
-2. Configure your environment variables in `.env.local`:
-```
-NEXT_PUBLIC_API_URL=http://localhost:8080/api
-```
-
-The `.env.local` file is used for local development and is not committed to version control. For production, set these environment variables on your hosting platform.
 
 ## Development
 
