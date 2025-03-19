@@ -23,9 +23,14 @@ export const useUploadDocument = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: UploadDocumentData) => api.post('/documents', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['files'] })
+    mutationFn: async (data: UploadDocumentData) => {
+      const response = await api.post('/documents', data)
+      return response.data
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate both the current folder's files and root folder files
+      queryClient.invalidateQueries({ queryKey: ['files', variables.folder_id] })
+      queryClient.invalidateQueries({ queryKey: ['files', null] })
     },
   })
 }

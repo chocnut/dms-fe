@@ -1,11 +1,5 @@
-import { Metadata } from 'next'
-import { DocumentsContent } from './DocumentsContent'
+import { FileList } from '@/components/documents/FileList'
 
-export const metadata: Metadata = {
-  title: 'Documents - DMS',
-  description: 'View and manage your documents',
-}
-
-export default function DocumentsPage() {
-  return <DocumentsContent />
+export default function DocumentsRootPage() {
+  return <FileList initialFolderId={null} folderPath={[]} />
 }
