@@ -1,6 +1,6 @@
-# Document Management System Frontend
+# DMS Frontend
 
-[![Tests](https://github.com/[username]/[repository]/actions/workflows/test.yml/badge.svg)](https://github.com/[username]/[repository]/actions/workflows/test.yml)
+![Test Status](https://github.com/chocnut/dms-fe/actions/workflows/test.yml/badge.svg)
 
 Frontend application for the Document Management System built with Next.js 14.
 
@@ -21,6 +21,7 @@ Frontend application for the Document Management System built with Next.js 14.
 ## Environment Setup
 
 Copy `.env.example` to `.env.local`:
+
 ```bash
 cp .env.example .env.local
 ```
@@ -62,3 +63,4 @@ pnpm test:watch
 # Run tests with coverage
 pnpm test:coverage
 ```
+
