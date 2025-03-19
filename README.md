@@ -1,5 +1,7 @@
 # Document Management System Frontend
 
+[![Tests](https://github.com/[username]/[repository]/actions/workflows/test.yml/badge.svg)](https://github.com/[username]/[repository]/actions/workflows/test.yml)
+
 Frontend application for the Document Management System built with Next.js 14.
 
 ## Tech Stack
