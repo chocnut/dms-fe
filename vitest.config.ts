@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: react(),
   resolve: {
     alias: {
       '@': resolve(__dirname, './app'),
@@ -18,7 +18,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./app/__tests__/setup.ts'],
-    include: ['**/*.test.{ts,tsx}'],
+    include: ['app/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     coverage: {
       reporter: ['text', 'json', 'html'],
       exclude: ['node_modules/', 'app/__tests__/setup.ts'],
