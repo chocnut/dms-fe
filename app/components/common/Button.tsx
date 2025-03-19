@@ -5,7 +5,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: React.ReactNode
 }
 
-const StyledButton = styled.button<ButtonProps>`
+const StyledButton = styled.button<{ $variant?: 'primary' | 'outline' }>`
   display: flex;
   align-items: center;
   gap: 8px;
@@ -16,8 +16,8 @@ const StyledButton = styled.button<ButtonProps>`
   cursor: pointer;
   transition: all 0.2s;
 
-  ${({ variant = 'primary' }) =>
-    variant === 'primary'
+  ${({ $variant = 'primary' }) =>
+    $variant === 'primary'
       ? `
     color: white;
     background-color: #4169E1;
@@ -48,9 +48,9 @@ const IconWrapper = styled.span`
   font-size: 18px;
 `
 
-export const Button = ({ children, icon, ...props }: ButtonProps) => {
+export const Button = ({ children, icon, variant, ...props }: ButtonProps) => {
   return (
-    <StyledButton {...props}>
+    <StyledButton $variant={variant} {...props}>
       {icon && <IconWrapper>{icon}</IconWrapper>}
       {children}
     </StyledButton>

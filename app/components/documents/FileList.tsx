@@ -40,6 +40,11 @@ const Title = styled.h1`
   font-size: 24px;
   color: #333;
   margin: 0;
+  cursor: pointer;
+
+  &:hover {
+    color: #4169e1;
+  }
 `
 
 const Actions = styled.div`
@@ -312,9 +317,15 @@ export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) =>
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            cursor: item.type === 'folder' ? 'pointer' : 'default',
+            cursor: 'pointer',
           }}
-          onClick={() => item.type === 'folder' && handleFolderClick(item)}
+          onClick={() => {
+            if (item.type === 'folder') {
+              handleFolderClick(item)
+            } else {
+              router.push('/documents')
+            }
+          }}
         >
           <FontAwesomeIcon
             icon={item.type === 'folder' ? faFolder : faFileLines}
@@ -375,7 +386,7 @@ export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) =>
   return (
     <Container>
       <Header>
-        <Title>Documents</Title>
+        <Title onClick={() => router.push('/documents')}>Documents</Title>
         <Actions>
           <Button
             variant="outline"

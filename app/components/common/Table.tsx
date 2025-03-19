@@ -16,14 +16,14 @@ const StyledTable = styled.table`
   border-collapse: collapse;
 `
 
-const Th = styled.th<{ sortable?: string }>`
+const Th = styled.th<{ $sortable?: boolean }>`
   padding: 16px;
   text-align: left;
   background-color: #1e1b4b;
   color: white;
   font-weight: 500;
   font-size: 14px;
-  cursor: ${props => (props.sortable === 'true' ? 'pointer' : 'default')};
+  cursor: ${props => (props.$sortable ? 'pointer' : 'default')};
   white-space: nowrap;
 
   &:first-child {
@@ -37,7 +37,7 @@ const Th = styled.th<{ sortable?: string }>`
   }
 
   &:hover {
-    background-color: ${props => (props.sortable === 'true' ? '#2e2a5c' : '#1e1b4b')};
+    background-color: ${props => (props.$sortable ? '#2e2a5c' : '#1e1b4b')};
   }
 `
 
@@ -138,14 +138,14 @@ const PaginationControls = styled.div`
   gap: 8px;
 `
 
-const PageNumber = styled.button<{ active?: string }>`
+const PageNumber = styled.button<{ $active?: boolean }>`
   padding: 8px 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid ${props => (props.active === 'true' ? '#4169e1' : '#e5e7eb')};
-  background: ${props => (props.active === 'true' ? '#4169e1' : 'white')};
-  color: ${props => (props.active === 'true' ? 'white' : '#374151')};
+  border: 1px solid ${props => (props.$active ? '#4169e1' : '#e5e7eb')};
+  background: ${props => (props.$active ? '#4169e1' : 'white')};
+  color: ${props => (props.$active ? 'white' : '#374151')};
   font-size: 14px;
   border-radius: 6px;
   cursor: pointer;
@@ -154,7 +154,7 @@ const PageNumber = styled.button<{ active?: string }>`
 
   &:hover {
     border-color: #4169e1;
-    color: ${props => (props.active === 'true' ? 'white' : '#4169e1')};
+    color: ${props => (props.$active ? 'white' : '#4169e1')};
   }
 
   &:disabled {
@@ -293,7 +293,7 @@ export function Table<T extends { id?: number | string }, K extends keyof T = ke
                 <Th
                   key={String(column.key)}
                   onClick={() => column.sortable && onSort?.(column.key)}
-                  sortable={column.sortable ? 'true' : undefined}
+                  $sortable={column.sortable}
                 >
                   {column.headerRender ? (
                     column.headerRender()
@@ -349,11 +349,7 @@ export function Table<T extends { id?: number | string }, K extends keyof T = ke
             Previous
           </NavigationButton>
           {Array.from({ length: totalPages }, (_, i) => (
-            <PageNumber
-              key={i + 1}
-              onClick={() => onPageChange?.(i + 1)}
-              active={i + 1 === page ? 'true' : undefined}
-            >
+            <PageNumber key={i + 1} onClick={() => onPageChange?.(i + 1)} $active={i + 1 === page}>
               {i + 1}
             </PageNumber>
           ))}
