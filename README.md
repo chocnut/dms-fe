@@ -8,7 +8,13 @@ Frontend application for the Document Management System built with Next.js 14.
 - TypeScript
 - Styled Components
 - React Query
-- Zustand
+- Vitest for testing
+- ESLint + Prettier for code quality
+
+## Prerequisites
+
+- Node.js 20.x
+- pnpm 8.15.4+
 
 ## Environment Setup
 
