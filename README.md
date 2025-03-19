@@ -101,6 +101,5 @@ Folder features:
 The system supports a hierarchical structure:
 - Root level folders and files
 - Nested subfolders
-- Drag and drop to move files/folders
 - Breadcrumb navigation for easy folder traversal
 
