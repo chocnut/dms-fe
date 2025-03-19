@@ -163,11 +163,12 @@ export const FileList = () => {
     e.preventDefault()
     const form = e.currentTarget
     const formData = new FormData(form)
+    const name = formData.get('name') as string
 
     try {
       await createFolder.mutateAsync({
-        name: formData.get('name') as string,
-        created_by: 'User',
+        name,
+        created_by: 'John Green',
       })
       setIsModalOpen(false)
     } catch (error) {
@@ -247,9 +248,14 @@ export const FileList = () => {
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Folder">
         <Form onSubmit={handleCreateFolder}>
-          <Input label="Name" name="name" required />
-          <Button type="submit" disabled={createFolder.isPending}>
-            {createFolder.isPending ? 'Creating...' : 'Create'}
+          <Input type="text" name="name" placeholder="Enter folder name" required autoFocus />
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={createFolder.isPending}
+            style={{ width: '100%' }}
+          >
+            {createFolder.isPending ? 'Creating...' : 'Create Folder'}
           </Button>
         </Form>
       </Modal>

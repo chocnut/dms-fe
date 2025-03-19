@@ -23,6 +23,7 @@ const StyledInput = styled.input`
   font-size: 14px;
   outline: none;
   background-color: white;
+  color: #333;
   transition: border-color 0.2s;
 
   &:focus {
@@ -32,6 +33,10 @@ const StyledInput = styled.input`
   &:disabled {
     background-color: #f8f9ff;
     cursor: not-allowed;
+  }
+
+  &::placeholder {
+    color: #9ca3af;
   }
 `
 

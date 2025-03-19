@@ -42,8 +42,8 @@ export const useCreateFolder = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: { name: string; created_by: string }) => {
-      const response = await api.post('/files/folder', data)
+    mutationFn: async (data: { name: string; created_by: string; parent_id?: number | null }) => {
+      const response = await api.post('/folders', data)
       return response.data
     },
     onSuccess: () => {

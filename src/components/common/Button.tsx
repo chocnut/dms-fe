@@ -15,19 +15,21 @@ const StyledButton = styled.button<ButtonProps>`
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  background-color: white;
 
   ${({ variant = 'primary' }) =>
     variant === 'primary'
       ? `
-    color: #4169E1;
+    color: white;
+    background-color: #4169E1;
     border: 1px solid #4169E1;
     &:hover {
-      background-color: #F8F9FF;
+      background-color: #3154B4;
+      border-color: #3154B4;
     }
   `
       : `
     color: #4169E1;
+    background-color: white;
     border: 1px solid #4169E1;
     &:hover {
       background-color: #F8F9FF;
