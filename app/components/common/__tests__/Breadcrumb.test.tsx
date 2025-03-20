@@ -7,16 +7,9 @@ import type { UseQueryResult } from '@tanstack/react-query'
 
 vi.mock('@/hooks/useFiles')
 
-type MockResponse = {
-  status: 'success'
-  data: Array<{
-    id: number
-    name: string
-    type: 'folder'
-    folder_id: null
-    created_by: string
-    created_at: string
-  }>
+interface ApiResponse<T = Record<string, unknown>> {
+  status: 'success' | 'error'
+  data: T
   pagination: {
     total: number
     page: number
@@ -53,18 +46,20 @@ describe('Breadcrumb', () => {
     },
   ]
 
+  const mockResponse: ApiResponse<typeof mockFolders> = {
+    status: 'success',
+    data: mockFolders,
+    pagination: {
+      total: mockFolders.length,
+      page: 1,
+      limit: 10,
+      totalPages: 1,
+    },
+  }
+
   beforeEach(() => {
     vi.mocked(useFiles).mockReturnValue({
-      data: {
-        status: 'success' as const,
-        data: mockFolders,
-        pagination: {
-          total: mockFolders.length,
-          page: 1,
-          limit: 10,
-          totalPages: 1,
-        },
-      },
+      data: mockResponse,
       isLoading: false,
       error: null,
       isError: false,
@@ -87,7 +82,9 @@ describe('Breadcrumb', () => {
       isStale: false,
       dataUpdatedAt: Date.now(),
       errorUpdatedAt: 0,
-    } satisfies Partial<UseQueryResult<MockResponse, Error>>)
+      isFetchedAfterMount: true,
+      promise: Promise.resolve(mockResponse),
+    } as UseQueryResult<ApiResponse<typeof mockFolders>, Error>)
   })
 
   afterEach(() => {
