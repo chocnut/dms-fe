@@ -30,6 +30,7 @@ import {
   Form,
   HiddenInput,
 } from './FileList.styles'
+import { Breadcrumb } from '../common/Breadcrumb'
 
 interface FileListProps {
   initialFolderId?: number | null
@@ -299,6 +300,7 @@ export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) =>
     <Container>
       <Header>
         <Title onClick={() => router.push('/documents')}>Documents</Title>
+
         <Actions>
           <Button
             variant="outline"
@@ -342,6 +344,8 @@ export const FileList = ({ initialFolderId, folderPath = [] }: FileListProps) =>
         onChange={handleFileChange}
         accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
       />
+
+      <Breadcrumb folderPath={folderPath} />
 
       <Table
         data={displayedItems}
